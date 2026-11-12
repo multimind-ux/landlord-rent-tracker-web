@@ -11,3 +11,5 @@ dist/
 # Logs and OS files
 *.log
 .DS_Store
+.vercel
+.env*
