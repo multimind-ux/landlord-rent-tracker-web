@@ -7,7 +7,15 @@ Built with **React + Vite (JavaScript)**, **React Router**, **Axios**, and plain
 ## Requirements
 
 - Node.js 18+ and npm
-- The FastAPI backend running at `http://localhost:8000` (see below)
+- The FastAPI backend (local at `http://localhost:8000`, or the deployed API below)
+
+## Live deployment
+
+- Website: <https://landlord-rent-tracker-web.vercel.app>
+- API: <https://landlord-rent-tracker-api.vercel.app>
+- Vercel project: `multimind/landlord-rent-tracker-web`
+
+The production build reads `VITE_API_URL` from the Vercel environment and points at the deployed API.
 
 ## 1. Start the backend
 
@@ -112,3 +120,5 @@ npm run preview
 ```
 
 The production build is written to `dist/` (gitignored).
+
+To deploy on Vercel, set `VITE_API_URL` in the project's environment variables and deploy with `vercel --prod`. The committed `vercel.json` rewrites all routes to `index.html` so React Router paths such as `/login` and `/tenants` work on refresh.
