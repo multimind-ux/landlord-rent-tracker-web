@@ -35,6 +35,19 @@ export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const saveToken = (token) => localStorage.setItem(TOKEN_KEY, token);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
+// Read the small, non-sensitive display fields from the JWT payload.
+export function getSessionUser() {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(normalized));
+  } catch {
+    return null;
+  }
+}
+
 export const getMustChangePassword = () =>
   localStorage.getItem(MUST_CHANGE_PASSWORD_KEY) === "true";
 

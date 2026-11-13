@@ -1,8 +1,8 @@
 # Landlord Rent Tracker — React frontend
 
-A clean, mobile-friendly React dashboard for the **Landlord Rent Tracker API**. It lets one landlord manage 5 self-contain rooms and a twin flat: tenants, units, rent records, payments, overdue rent and vacant units.
+A modern, responsive dashboard for the **Landlord Rent Tracker API**. One landlord can manage tenants, units, rent records, payments, overdue rent, and reminder notifications for a building with self-contain rooms and twin flats.
 
-Built with **React + Vite (JavaScript)**, **React Router**, **Axios**, and plain CSS.
+Built with **React + Vite (JavaScript)**, **React Router**, **Axios**, **Tailwind CSS**, **Inter**, and **lucide-react**.
 
 ## Requirements
 
@@ -27,7 +27,7 @@ python main.py
 
 The API and Swagger docs will be at <http://localhost:8000/docs>. The seven units are seeded automatically on first startup.
 
-The backend's CORS is already configured to allow `http://localhost:5173`, which is Vite's default port.
+The backend's CORS is configured to allow `http://localhost:5173`, which is Vite's default port.
 
 ## 2. Configure the API URL
 
@@ -63,53 +63,70 @@ Log in with those details. On the first login, the app redirects to **Change pas
 
 | Route | Page | What it does |
 | ----- | ---- | ------------ |
-| `/login` | Login | Logs in via `POST /auth/login`, saves the JWT in `localStorage` |
-| `/` | Dashboard | Summary cards, overdue table, vacant units |
-| `/tenants` | Tenants | Search, add, edit, move out (with confirmation) |
-| `/units` | Units | Type, rent, occupied/vacant status, edit rent amount |
-| `/rent-records` | Rent Records | Filter by status; create rent records |
-| `/payments` | Payments | Record a payment against an open rent record; view history |
+| `/login` | Login | Centred login card with a loading state; no registration link |
+| `/` | Dashboard | Summary cards, collection progress, overdue rent with copy-reminder actions, due this week, vacant units |
+| `/tenants` | Tenants | Search and filter; add/edit; move out and delete with confirmation |
+| `/units` | Units | Search and filter; add/edit rent and occupancy; delete with confirmation |
+| `/rent-records` | Rent Records | Search and status filters; add/edit/delete records; partial, paid and overdue badges |
+| `/payments` | Payments | Search and date filters; record payments against open rent records |
+| `/notifications` | Notifications | All/Unread filters, mark one or all as read, latest reminder alerts |
+| `/settings` | Settings | Notification email, reminder days, overdue repeat interval, email switch, password link |
 | `/change-password` | Change Password | Forced on first login; also available from the Account menu |
 
 ## Features
 
+- **Modern dashboard layout** — fixed desktop sidebar, mobile top bar and slide-in navigation drawer.
+- **Dark mode** — persisted in `localStorage` and applied before paint to avoid a flash.
+- **Notification bell** — unread badge polled every 60 seconds, latest notifications dropdown, and a full inbox page.
+- **Rent reminders** — due-soon, due-today and overdue notifications are colour-coded; overdue tenants include a one-tap **Copy reminder** message.
+- **Dashboard actions** — tap-to-call phone links for rent due this week, collection progress, vacant units, and quick links.
+- **Reusable UI kit** — `Button`, `Card`, `Badge`, `Input`, `Select`, `Modal`, `Table`, `Skeleton`, `EmptyState`, `ConfirmDialog`, `FilterChips`, and `Switch`.
+- **Skeleton loading** — no plain "Loading..." text; friendly empty states include an action.
+- **Toast feedback** — every create, update, delete, payment and settings action confirms the result.
+- **Confirmations** — deletes and tenant move-outs require confirmation.
 - **Protected routes** — no token means a redirect to `/login`; any API `401` clears the token and redirects automatically.
 - **Forced password change** — a new admin-created account must change its password before any other page is available.
-- **Account menu** — change the password or log out from the profile menu.
-- **One Axios instance** (`src/api.js`) attaches the Bearer token to every request.
-- **Loading states and error messages** on every request, with retry buttons.
-- **Colour-coded badges** — green for paid/active/occupied, yellow for partial/vacant, red for unpaid/overdue.
-- **Naira formatting** (`₦50,000`) and dates as `DD/MM/YYYY`.
-- **Confirmation** before moving a tenant out.
-- **Responsive layout** — the navbar collapses into a menu on mobile and tables scroll horizontally.
-- **Payment history** comes from the backend `GET /payments` endpoint.
+- **Naira formatting** (`₦50,000`) and dates as `DD/MM/YYYY`; reminder copy is normalised too.
+- **Responsive tables** — wide tables scroll horizontally without causing page-level overflow; cards stack cleanly on small screens.
+- **Accessible focus states** — visible focus rings, labelled form fields, and keyboard-friendly dialogs.
 
 ## Project structure
 
 ```
 src/
-  api.js                  Axios instance, JWT handling, error helper
-  App.jsx                 Routes
-  main.jsx                React entry point
-  styles.css              Global plain CSS
+  api.js                    Axios instance, JWT handling, error helper
+  App.jsx                   Routes and providers
+  main.jsx                  React entry point and Inter font imports
+  styles.css                Tailwind layers, theme tokens and utilities
   components/
-    Navbar.jsx            Responsive navigation + logout
-    ProtectedRoute.jsx    Token guard
-    Layout.jsx            Navbar + page outlet
-    StatusBadge.jsx       Colour-coded status pill
-    SummaryCard.jsx       Dashboard metric card
-    Modal.jsx             Reusable dialog
-    PageLoader.jsx        Loading spinner
-    ErrorBanner.jsx       Error + retry banner
+    AuthShell.jsx           Shared login/change-password shell
+    PasswordInput.jsx       Password field with show/hide control
+    Sidebar.jsx             Desktop sidebar and mobile drawer content
+    Topbar.jsx              Top bar, notification bell, theme and account menu
+    Layout.jsx              App shell and page outlet
+    Toast.jsx               Toast presentation
+    ProtectedRoute.jsx      Token and forced-password-change guard
+    ErrorBanner.jsx         Error + retry banner
+    ui/                     Reusable Button, Card, Badge, Input, Modal, Table,
+                            Skeleton, EmptyState, ConfirmDialog, FilterChips, Switch
+  context/
+    NotificationContext.jsx Unread count polling and latest notifications
+    ThemeContext.jsx        Light/dark theme
+    ToastContext.jsx        Toast provider
   pages/
     Login.jsx
+    ChangePassword.jsx
     Dashboard.jsx
     Tenants.jsx
     Units.jsx
     RentRecords.jsx
     Payments.jsx
+    Notifications.jsx
+    Settings.jsx
   utils/
-    format.js             Naira, dates, unit labels
+    clipboard.js            Clipboard copy with fallback
+    cn.js                   Class-name helper
+    format.js               Naira, dates, notification copy, unit labels
 ```
 
 ## Build for production

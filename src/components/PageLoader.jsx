@@ -1,8 +1,0 @@
-export default function PageLoader({ label = "Loading..." }) {
-  return (
-    <div className="loader" role="status" aria-live="polite">
-      <span className="spinner" aria-hidden="true" />
-      <p>{label}</p>
-    </div>
-  );
-}

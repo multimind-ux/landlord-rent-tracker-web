@@ -1,15 +1,21 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { KeyRound, ShieldCheck } from "lucide-react";
 import {
   api,
   errorMessage,
   getMustChangePassword,
   setMustChangePassword,
 } from "../api";
-import Toast from "../components/Toast";
+import AuthShell from "../components/AuthShell";
+import PasswordInput from "../components/PasswordInput";
+import Button from "../components/ui/Button";
+import { Field } from "../components/ui/Input";
+import { useToast } from "../context/ToastContext";
 
 export default function ChangePassword() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const forced = getMustChangePassword();
   const [form, setForm] = useState({
     current: "",
@@ -18,7 +24,6 @@ export default function ChangePassword() {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null);
 
   function updateField(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
@@ -36,7 +41,8 @@ export default function ChangePassword() {
     } else if (form.next.length < 8) {
       nextErrors.next = "New password must be at least 8 characters.";
     } else if (form.next === form.current) {
-      nextErrors.next = "New password must be different from the current password.";
+      nextErrors.next =
+        "New password must be different from the current password.";
     }
     if (!form.confirm) {
       nextErrors.confirm = "Confirm your new password.";
@@ -60,11 +66,11 @@ export default function ChangePassword() {
       });
       setMustChangePassword(false);
       setForm({ current: "", next: "", confirm: "" });
-      setToast({ type: "success", message: "Password changed successfully." });
-      window.setTimeout(() => navigate("/", { replace: true }), 1200);
+      toast("Password changed successfully.", "success");
+      window.setTimeout(() => navigate("/", { replace: true }), 900);
     } catch (err) {
       const message = errorMessage(err, "Could not change your password.");
-      setToast({ type: "error", message });
+      toast(message, "error");
       if (message.toLowerCase().includes("current password")) {
         setErrors((current) => ({ ...current, current: message }));
       }
@@ -74,95 +80,91 @@ export default function ChangePassword() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="login-brand">
-          <span aria-hidden="true">🏠</span> RentTracker
-        </div>
-        <h1>Change password</h1>
-        <p className="sub">
-          {forced
-            ? "Your account was created by the administrator. Set a new password to continue."
-            : "Choose a new password for your account."}
-        </p>
-
-        {toast && (
-          <Toast
-            type={toast.type}
-            message={toast.message}
-            onClose={() => setToast(null)}
-          />
-        )}
-
-        <form className="login-form" onSubmit={handleSubmit} noValidate>
-          <div className="field">
-            <label htmlFor="current-password">Current password</label>
-            <input
-              id="current-password"
-              type="password"
-              autoComplete="current-password"
-              value={form.current}
-              onChange={(event) => updateField("current", event.target.value)}
-              placeholder="••••••••"
-              aria-invalid={Boolean(errors.current)}
-              aria-describedby={errors.current ? "current-password-error" : undefined}
-            />
-            {errors.current && (
-              <p className="field-error" id="current-password-error" role="alert">
-                {errors.current}
-              </p>
-            )}
-          </div>
-
-          <div className="field">
-            <label htmlFor="new-password">New password</label>
-            <input
-              id="new-password"
-              type="password"
-              autoComplete="new-password"
-              value={form.next}
-              onChange={(event) => updateField("next", event.target.value)}
-              placeholder="At least 8 characters"
-              aria-invalid={Boolean(errors.next)}
-              aria-describedby={errors.next ? "new-password-error" : undefined}
-            />
-            {errors.next && (
-              <p className="field-error" id="new-password-error" role="alert">
-                {errors.next}
-              </p>
-            )}
-          </div>
-
-          <div className="field">
-            <label htmlFor="confirm-password">Confirm new password</label>
-            <input
-              id="confirm-password"
-              type="password"
-              autoComplete="new-password"
-              value={form.confirm}
-              onChange={(event) => updateField("confirm", event.target.value)}
-              placeholder="Repeat the new password"
-              aria-invalid={Boolean(errors.confirm)}
-              aria-describedby={errors.confirm ? "confirm-password-error" : undefined}
-            />
-            {errors.confirm && (
-              <p className="field-error" id="confirm-password-error" role="alert">
-                {errors.confirm}
-              </p>
-            )}
-          </div>
-
-          <button type="submit" className="btn primary" disabled={loading}>
-            {loading ? "Updating password..." : "Update password"}
-          </button>
-        </form>
-
-        {!forced && (
-          <p className="login-note">
-            <Link to="/">Back to dashboard</Link>
+    <AuthShell
+      title="Change password"
+      subtitle={
+        forced
+          ? "Set a new password before continuing to your workspace."
+          : "Choose a new password for your landlord account."
+      }
+      footer={
+        !forced ? (
+          <Link
+            to="/"
+            className="text-xs font-semibold text-accent hover:text-accent-hover"
+          >
+            Back to dashboard
+          </Link>
+        ) : null
+      }
+    >
+      {forced && (
+        <div className="mb-5 flex gap-3 rounded-xl border border-accent/20 bg-accent-soft px-3.5 py-3">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+          <p className="text-xs leading-5 text-accent">
+            Your account was created by the administrator. Choose a private
+            password to unlock the rest of the app.
           </p>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+
+      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+        <Field
+          label="Current password"
+          htmlFor="current-password"
+          error={errors.current}
+        >
+          <PasswordInput
+            id="current-password"
+            autoComplete="current-password"
+            value={form.current}
+            onChange={(event) => updateField("current", event.target.value)}
+            placeholder="Enter your current password"
+            aria-invalid={Boolean(errors.current)}
+          />
+        </Field>
+
+        <Field
+          label="New password"
+          htmlFor="new-password"
+          error={errors.next}
+          hint={!errors.next ? "Use at least 8 characters." : undefined}
+        >
+          <PasswordInput
+            id="new-password"
+            autoComplete="new-password"
+            value={form.next}
+            onChange={(event) => updateField("next", event.target.value)}
+            placeholder="At least 8 characters"
+            aria-invalid={Boolean(errors.next)}
+          />
+        </Field>
+
+        <Field
+          label="Confirm new password"
+          htmlFor="confirm-password"
+          error={errors.confirm}
+        >
+          <PasswordInput
+            id="confirm-password"
+            autoComplete="new-password"
+            value={form.confirm}
+            onChange={(event) => updateField("confirm", event.target.value)}
+            placeholder="Repeat the new password"
+            aria-invalid={Boolean(errors.confirm)}
+          />
+        </Field>
+
+        <Button
+          type="submit"
+          className="w-full"
+          size="lg"
+          loading={loading}
+          icon={KeyRound}
+        >
+          {loading ? "Updating password..." : "Update password"}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

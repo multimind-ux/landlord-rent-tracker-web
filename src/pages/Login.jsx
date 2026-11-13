@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { AlertCircle, Mail } from "lucide-react";
 import {
   api,
   errorMessage,
@@ -8,6 +9,10 @@ import {
   saveToken,
   setMustChangePassword,
 } from "../api";
+import AuthShell from "../components/AuthShell";
+import PasswordInput from "../components/PasswordInput";
+import Button from "../components/ui/Button";
+import { Field, Input } from "../components/ui/Input";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -17,7 +22,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Already logged in? Respect a pending forced password change.
   if (getToken()) {
     return (
       <Navigate
@@ -49,57 +53,67 @@ export default function Login() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="login-brand">
-          <span aria-hidden="true">🏠</span> RentTracker
+    <AuthShell
+      title="Welcome back"
+      subtitle="Sign in to manage rent, tenants and reminders."
+      footer={
+        <p className="text-xs leading-5 text-muted">
+          Accounts are created by your administrator. There is no public
+          registration.
+        </p>
+      }
+    >
+      {error && (
+        <div
+          className="mb-5 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-xs leading-5 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300"
+          role="alert"
+        >
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>{error}</span>
         </div>
-        <h1>Landlord login</h1>
-        <p className="sub">Track rent, tenants and vacant units in one place.</p>
+      )}
 
-        {error && (
-          <div className="alert error" role="alert" style={{ marginTop: 18 }}>
-            {error}
-          </div>
-        )}
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <Field label="Email address" htmlFor="email">
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            autoFocus
+            icon={Mail}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="you@example.com"
+            required
+          />
+        </Field>
 
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="field">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-          </div>
+        <Field label="Password" htmlFor="password">
+          <PasswordInput
+            id="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Enter your password"
+            required
+          />
+        </Field>
 
-          <div className="field">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="••••••••"
-              required
-            />
-          </div>
+        <Button
+          type="submit"
+          className="w-full"
+          size="lg"
+          loading={loading}
+        >
+          {loading ? "Signing in..." : "Sign in"}
+        </Button>
+      </form>
 
-          <button type="submit" className="btn primary" disabled={loading}>
-            {loading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-
-        <p className="login-note">
-          Use the landlord account provided by your administrator. You will be
-          asked to change the password on first login.
+      <div className="mt-5 rounded-xl bg-elevated/60 px-3.5 py-3">
+        <p className="text-[11px] leading-5 text-muted">
+          On your first login you will be asked to choose a new password.
         </p>
       </div>
-    </div>
+    </AuthShell>
   );
 }

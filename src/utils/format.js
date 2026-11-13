@@ -17,6 +17,46 @@ export function formatDate(value) {
   return `${day}/${month}/${year}`;
 }
 
+// Show a short local date and time, e.g. 13/11/2026, 09:42.
+export function formatDateTime(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return formatDate(value);
+  return date.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export function formatRelativeTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return formatDate(value);
+}
+
+// Notification copy comes from the API. Normalise dates and whole naira
+// amounts so the inbox follows the same display rules as the rest of the app.
+export function formatNotificationMessage(value) {
+  if (!value) return "";
+  return String(value)
+    .replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, (_, year, month, day) => {
+      return `${day}/${month}/${year}`;
+    })
+    .replace(/₦(\d{1,3}(?:,\d{3})*)\.00\b/g, "₦$1");
+}
+
 // Today's date in YYYY-MM-DD using the browser's local timezone.
 export function todayISO() {
   const now = new Date();
