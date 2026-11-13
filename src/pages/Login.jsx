@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { api, errorMessage, getToken, saveToken } from "../api";
+import {
+  api,
+  errorMessage,
+  getMustChangePassword,
+  getToken,
+  saveToken,
+  setMustChangePassword,
+} from "../api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,9 +17,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Already logged in? Go straight to the dashboard.
+  // Already logged in? Respect a pending forced password change.
   if (getToken()) {
-    return <Navigate to="/" replace />;
+    return (
+      <Navigate
+        to={getMustChangePassword() ? "/change-password" : "/"}
+        replace
+      />
+    );
   }
 
   async function handleSubmit(event) {
@@ -22,7 +34,11 @@ export default function Login() {
     try {
       const { data } = await api.post("/auth/login", { email, password });
       saveToken(data.access_token);
-      navigate(location.state?.from || "/", { replace: true });
+      setMustChangePassword(data.must_change_password);
+      const destination = data.must_change_password
+        ? "/change-password"
+        : location.state?.from || "/";
+      navigate(destination, { replace: true });
     } catch (err) {
       setError(
         errorMessage(err, "Login failed. Check your email and password.")
@@ -56,7 +72,7 @@ export default function Login() {
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="landlord@example.com"
+              placeholder="you@example.com"
               required
             />
           </div>
@@ -80,9 +96,8 @@ export default function Login() {
         </form>
 
         <p className="login-note">
-          First time here? Create the landlord account once with{" "}
-          <code>POST /auth/register</code> (see the README), then log in with
-          those details.
+          Use the landlord account provided by your administrator. You will be
+          asked to change the password on first login.
         </p>
       </div>
     </div>

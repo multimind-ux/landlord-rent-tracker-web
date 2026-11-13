@@ -3,6 +3,7 @@ import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import ChangePassword from "./pages/ChangePassword";
 import Payments from "./pages/Payments";
 import RentRecords from "./pages/RentRecords";
 import Tenants from "./pages/Tenants";
@@ -14,6 +15,16 @@ export default function App() {
       <Routes>
         {/* Public route */}
         <Route path="/login" element={<Login />} />
+
+        {/* Logged-in users must be able to reach this even when forced to change */}
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute skipPasswordChangeGuard>
+              <ChangePassword />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Every other page lives inside the protected layout */}
         <Route

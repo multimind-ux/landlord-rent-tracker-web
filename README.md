@@ -48,19 +48,16 @@ npm run dev
 
 Open <http://localhost:5173>.
 
-## 4. Register the landlord (first run only)
+## 4. Log in with the admin-created account
 
-The API allows a single landlord account. Create it once with curl (or from Swagger):
+There is no public registration. The API creates the single landlord account from the `ADMIN_EMAIL` and `ADMIN_PASSWORD` environment variables when the database has no users:
 
 ```bash
-curl -X POST http://localhost:8000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Landlord", "email": "landlord@example.com", "password": "secret123"}'
+export ADMIN_EMAIL="admin@example.com"
+export ADMIN_PASSWORD="replace-with-a-strong-password"
 ```
 
-Then log in on the website with that email and password. Tokens are valid for 2 hours.
-
-> If you already registered while testing, just log in — registering again returns `400 Landlord account already exists`.
+Log in with those details. On the first login, the app redirects to **Change password** and blocks every other page until the password is changed. You can also change it later from the **Account** menu.
 
 ## Pages
 
@@ -72,10 +69,13 @@ Then log in on the website with that email and password. Tokens are valid for 2 
 | `/units` | Units | Type, rent, occupied/vacant status, edit rent amount |
 | `/rent-records` | Rent Records | Filter by status; create rent records |
 | `/payments` | Payments | Record a payment against an open rent record; view history |
+| `/change-password` | Change Password | Forced on first login; also available from the Account menu |
 
 ## Features
 
 - **Protected routes** — no token means a redirect to `/login`; any API `401` clears the token and redirects automatically.
+- **Forced password change** — a new admin-created account must change its password before any other page is available.
+- **Account menu** — change the password or log out from the profile menu.
 - **One Axios instance** (`src/api.js`) attaches the Bearer token to every request.
 - **Loading states and error messages** on every request, with retry buttons.
 - **Colour-coded badges** — green for paid/active/occupied, yellow for partial/vacant, red for unpaid/overdue.

@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export const TOKEN_KEY = "rent_tracker_token";
+export const MUST_CHANGE_PASSWORD_KEY = "rent_tracker_must_change_password";
 
 // One Axios instance for the whole app. The base URL comes from the .env file.
 export const api = axios.create({
@@ -21,7 +22,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem(TOKEN_KEY);
+      clearAuth();
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
@@ -33,6 +34,22 @@ api.interceptors.response.use(
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const saveToken = (token) => localStorage.setItem(TOKEN_KEY, token);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+
+export const getMustChangePassword = () =>
+  localStorage.getItem(MUST_CHANGE_PASSWORD_KEY) === "true";
+
+export const setMustChangePassword = (value) => {
+  if (value) {
+    localStorage.setItem(MUST_CHANGE_PASSWORD_KEY, "true");
+  } else {
+    localStorage.removeItem(MUST_CHANGE_PASSWORD_KEY);
+  }
+};
+
+export const clearAuth = () => {
+  clearToken();
+  localStorage.removeItem(MUST_CHANGE_PASSWORD_KEY);
+};
 
 // Turn FastAPI error payloads into a readable sentence.
 export function errorMessage(

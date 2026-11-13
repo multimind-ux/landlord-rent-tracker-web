@@ -1,6 +1,6 @@
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { clearToken } from "../api";
+import { clearAuth } from "../api";
 
 const LINKS = [
   { to: "/", label: "Dashboard" },
@@ -12,10 +12,22 @@ const LINKS = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   function handleLogout() {
-    clearToken();
+    clearAuth();
     navigate("/login", { replace: true });
   }
 
@@ -48,9 +60,44 @@ export default function Navbar() {
               {link.label}
             </NavLink>
           ))}
-          <button type="button" className="logout" onClick={handleLogout}>
-            Logout
-          </button>
+
+          <div className="profile-menu" ref={menuRef}>
+            <button
+              type="button"
+              className="profile-toggle"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((value) => !value)}
+            >
+              <span className="profile-avatar" aria-hidden="true">
+                L
+              </span>
+              Account
+            </button>
+
+            {menuOpen && (
+              <div className="profile-dropdown" role="menu">
+                <NavLink
+                  to="/change-password"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setOpen(false);
+                  }}
+                >
+                  Change password
+                </NavLink>
+                <button
+                  type="button"
+                  className="logout"
+                  role="menuitem"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </nav>
